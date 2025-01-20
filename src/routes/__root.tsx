@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
@@ -17,6 +18,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         <>
           <Outlet />
           <Suspense>
+            <ReactQueryDevtools initialIsOpen={false} />
             <TanStackRouterDevtools />
           </Suspense>
         </>

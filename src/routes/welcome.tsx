@@ -3,7 +3,9 @@ import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { api } from "@/lib/server";
 
 export const Route = createFileRoute("/welcome")({
   component: WelcomePage,
@@ -11,15 +13,72 @@ export const Route = createFileRoute("/welcome")({
 
 function WelcomePage() {
   const [email, setEmail] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [showFields, setShowFields] = useState(false);
+  const [isExistingUser, setIsExistingUser] = useState(false);
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+
+  const queryClient = useQueryClient();
+
+  // Check email mutation
+  const checkEmailMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const { data } = await api.post("/auth/check-email", { email });
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        setIsExistingUser(data.exists);
+        setShowFields(true);
+      }
+    },
+  });
+
+  const signInMutation = useMutation({
+    mutationFn: async (credentials: { email: string; password: string }) => {
+      const { data } = await api.post("/auth/signin", credentials);
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        queryClient.setQueryData(["user"], data.user);
+        console.log("Signed in successfully!", data);
+      }
+    },
+  });
+
+  // Sign up mutation
+  const signUpMutation = useMutation({
+    mutationFn: async (userData: {
+      email: string;
+      password: string;
+      name: string;
+    }) => {
+      const { data } = await api.post("/auth/signup", userData);
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        // Update auth state in query client
+        queryClient.setQueryData(["user"], data.user);
+        // Handle successful sign up (e.g., redirect)
+        console.log("Signed up successfully!", data);
+      }
+    },
+  });
+
+  const isLoading =
+    checkEmailMutation.isPending ||
+    signInMutation.isPending ||
+    signUpMutation.isPending;
 
   const handleContinue = () => {
-    if (email && !showPassword) {
-      setShowPassword(true);
-    } else if (email && password) {
-      // Handle sign in logic here
-      console.log("Signing in with:", email, password);
+    if (!showFields) {
+      checkEmailMutation.mutate(email);
+    } else if (isExistingUser) {
+      signInMutation.mutate({ email, password });
+    } else {
+      signUpMutation.mutate({ email, password, name: fullName });
     }
   };
 
@@ -50,30 +109,59 @@ function WelcomePage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading || showFields}
               className="bg-zinc-800/50 border-zinc-700 placeholder:text-zinc-600 text-gray-100 h-11 focus:border-indigo-500 focus:ring-indigo-500/20"
             />
 
-            {showPassword && (
-              <Input
-                placeholder="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-zinc-800/50 border-zinc-700 placeholder:text-zinc-600 text-gray-100 h-11 focus:border-indigo-500 focus:ring-indigo-500/20"
-              />
+            {showFields && (
+              <>
+                {!isExistingUser && (
+                  <Input
+                    placeholder="Full Name"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    disabled={isLoading}
+                    className="bg-zinc-800/50 border-zinc-700 placeholder:text-zinc-600 text-gray-100 h-11 focus:border-indigo-500 focus:ring-indigo-500/20"
+                  />
+                )}
+                <Input
+                  placeholder={isExistingUser ? "Password" : "New Password"}
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  className="bg-zinc-800/50 border-zinc-700 placeholder:text-zinc-600 text-gray-100 h-11 focus:border-indigo-500 focus:ring-indigo-500/20"
+                />
+              </>
             )}
           </div>
 
           <Button
             onClick={handleContinue}
-            className="font-semibold bg-indigo-600 hover:bg-indigo-500 w-full h-11 transition-colors"
+            disabled={
+              isLoading ||
+              !email ||
+              (showFields && (!password || (!isExistingUser && !fullName)))
+            }
+            className="font-semibold bg-indigo-600 hover:bg-indigo-500 w-full h-11 transition-colors disabled:bg-indigo-600/50 disabled:cursor-not-allowed"
           >
-            {showPassword ? "Sign In" : "Continue"}
+            {isLoading
+              ? "Loading..."
+              : showFields
+                ? isExistingUser
+                  ? "Sign In"
+                  : "Sign Up"
+                : "Continue"}
           </Button>
 
-          {showPassword && (
+          {showFields && (
             <button
-              onClick={() => setShowPassword(false)}
+              onClick={() => {
+                setShowFields(false);
+                setPassword("");
+                setFullName("");
+              }}
               className="text-sm text-zinc-500 hover:text-zinc-400 transition-colors"
             >
               Use a different email
