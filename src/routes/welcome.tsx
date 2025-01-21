@@ -6,6 +6,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "@/lib/server";
+import { useAuthStore } from "@/stores/auth";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/welcome")({
   component: WelcomePage,
@@ -18,9 +20,14 @@ function WelcomePage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
 
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate({ to: "/dashboard" });
+  };
+
   const queryClient = useQueryClient();
 
-  // Check email mutation
   const checkEmailMutation = useMutation({
     mutationFn: async (email: string) => {
       const { data } = await api.post("/auth/check-email", { email });
@@ -41,13 +48,14 @@ function WelcomePage() {
     },
     onSuccess: (data) => {
       if (data.success) {
-        queryClient.setQueryData(["user"], data.user);
+        useAuthStore.getState().setAuth(data.session.token, data.session.user);
+        queryClient.setQueryData(["user"], data.session.user);
         console.log("Signed in successfully!", data);
+        handleClick();
       }
     },
   });
 
-  // Sign up mutation
   const signUpMutation = useMutation({
     mutationFn: async (userData: {
       email: string;
@@ -59,9 +67,7 @@ function WelcomePage() {
     },
     onSuccess: (data) => {
       if (data.success) {
-        // Update auth state in query client
         queryClient.setQueryData(["user"], data.user);
-        // Handle successful sign up (e.g., redirect)
         console.log("Signed up successfully!", data);
       }
     },
