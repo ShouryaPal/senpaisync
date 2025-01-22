@@ -6,20 +6,11 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
     component: () => {
-      const TanStackRouterDevtools =
-        process.env.NODE_ENV === "production"
-          ? () => null
-          : React.lazy(() =>
-              import("@tanstack/router-devtools").then((res) => ({
-                default: res.TanStackRouterDevtools,
-              })),
-            );
       return (
         <>
           <Outlet />
           <Suspense>
             <ReactQueryDevtools initialIsOpen={false} />
-            <TanStackRouterDevtools />
           </Suspense>
         </>
       );
