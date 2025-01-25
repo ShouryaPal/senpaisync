@@ -12,21 +12,16 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as WelcomeImport } from './routes/welcome'
-import { Route as DashboardImport } from './routes/dashboard'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
+import { Route as DashboardIndexImport } from './routes/dashboard/index'
+import { Route as DashboardViewsImport } from './routes/dashboard/views'
 
 // Create/Update Routes
 
 const WelcomeRoute = WelcomeImport.update({
   id: '/welcome',
   path: '/welcome',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const DashboardRoute = DashboardImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -39,6 +34,18 @@ const AboutRoute = AboutImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DashboardIndexRoute = DashboardIndexImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DashboardViewsRoute = DashboardViewsImport.update({
+  id: '/dashboard/views',
+  path: '/dashboard/views',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -60,18 +67,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutImport
       parentRoute: typeof rootRoute
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardImport
-      parentRoute: typeof rootRoute
-    }
     '/welcome': {
       id: '/welcome'
       path: '/welcome'
       fullPath: '/welcome'
       preLoaderRoute: typeof WelcomeImport
+      parentRoute: typeof rootRoute
+    }
+    '/dashboard/views': {
+      id: '/dashboard/views'
+      path: '/dashboard/views'
+      fullPath: '/dashboard/views'
+      preLoaderRoute: typeof DashboardViewsImport
+      parentRoute: typeof rootRoute
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardIndexImport
       parentRoute: typeof rootRoute
     }
   }
@@ -82,46 +96,57 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/dashboard': typeof DashboardRoute
   '/welcome': typeof WelcomeRoute
+  '/dashboard/views': typeof DashboardViewsRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/dashboard': typeof DashboardRoute
   '/welcome': typeof WelcomeRoute
+  '/dashboard/views': typeof DashboardViewsRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/dashboard': typeof DashboardRoute
   '/welcome': typeof WelcomeRoute
+  '/dashboard/views': typeof DashboardViewsRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/dashboard' | '/welcome'
+  fullPaths: '/' | '/about' | '/welcome' | '/dashboard/views' | '/dashboard'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/dashboard' | '/welcome'
-  id: '__root__' | '/' | '/about' | '/dashboard' | '/welcome'
+  to: '/' | '/about' | '/welcome' | '/dashboard/views' | '/dashboard'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/welcome'
+    | '/dashboard/views'
+    | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  DashboardRoute: typeof DashboardRoute
   WelcomeRoute: typeof WelcomeRoute
+  DashboardViewsRoute: typeof DashboardViewsRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  DashboardRoute: DashboardRoute,
   WelcomeRoute: WelcomeRoute,
+  DashboardViewsRoute: DashboardViewsRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -136,8 +161,9 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/about",
-        "/dashboard",
-        "/welcome"
+        "/welcome",
+        "/dashboard/views",
+        "/dashboard/"
       ]
     },
     "/": {
@@ -146,11 +172,14 @@ export const routeTree = rootRoute
     "/about": {
       "filePath": "about.tsx"
     },
-    "/dashboard": {
-      "filePath": "dashboard.tsx"
-    },
     "/welcome": {
       "filePath": "welcome.tsx"
+    },
+    "/dashboard/views": {
+      "filePath": "dashboard/views.tsx"
+    },
+    "/dashboard/": {
+      "filePath": "dashboard/index.tsx"
     }
   }
 }

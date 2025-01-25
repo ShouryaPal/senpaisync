@@ -6,7 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "@/lib/server";
-import { useAuthStore } from "@/stores/auth";
+import { useAuthStore } from "@/hooks/use-auth";
 import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/welcome")({

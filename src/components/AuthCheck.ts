@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/server";
-import { useAuthStore } from "@/stores/auth";
+import { useAuthStore } from "@/hooks/use-auth";
 
 export function AuthCheck({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore();

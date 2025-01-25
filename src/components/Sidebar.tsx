@@ -3,7 +3,6 @@ import {
   Home,
   Inbox,
   PanelRightOpen,
-  PanelLeftClose,
   Search,
   Settings,
   UserRoundCheck,
@@ -15,20 +14,26 @@ import {
   CircleHelp,
 } from "lucide-react";
 import { Button } from "./ui/button";
+import { useSidebarStore } from "@/hooks/use-sidebar";
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
-
-  const toggleSidebar = () => setCollapsed((prev) => !prev);
+  const { collapsed, toggleCollapsed } = useSidebarStore();
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
       className={`h-full bg-zinc-900 flex flex-col border-r border-zinc-800 shadow-lg
       ${collapsed ? "w-16" : "w-64"}
       transition-[width] ease-in-out duration-400`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex-1 flex flex-col gap-4 p-2">
-        <Sidebar.Header collapsed={collapsed} toggleSidebar={toggleSidebar} />
+        <Sidebar.Header
+          collapsed={collapsed}
+          toggleSidebar={toggleCollapsed}
+          isHovered={isHovered}
+        />
         <Sidebar.Content collapsed={collapsed} />
       </div>
       <div className="p-2 pt-0">
@@ -38,32 +43,34 @@ export function Sidebar() {
   );
 }
 
+interface SidebarHeaderProps {
+  collapsed: boolean;
+  toggleSidebar: () => void;
+  isHovered: boolean;
+}
+
 Sidebar.Header = function SidebarHeader({
   collapsed,
   toggleSidebar,
-}: {
-  collapsed: boolean;
-  toggleSidebar: () => void;
-}) {
+  isHovered,
+}: SidebarHeaderProps) {
   return (
-    <div className="flex w-full items-center justify-between mb-2">
+    <div className="flex w-full h-5 items-center justify-between mb-2">
       {!collapsed && (
         <p className="text-xs font-semibold text-zinc-100 hover:text-white transition-colors">
           Title
         </p>
       )}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="hover:bg-zinc-800 rounded-lg transition-colors"
-        onClick={toggleSidebar}
-      >
-        {collapsed ? (
-          <PanelLeftClose className="h-5 w-5 text-zinc-400" />
-        ) : (
+      {!collapsed && isHovered && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hover:bg-zinc-800 rounded-lg transition-colors"
+          onClick={toggleSidebar}
+        >
           <PanelRightOpen className="h-5 w-5 text-zinc-400" />
-        )}
-      </Button>
+        </Button>
+      )}
     </div>
   );
 };

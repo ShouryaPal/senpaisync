@@ -1,5 +1,5 @@
 import { Navigate } from "@tanstack/react-router";
-import { useAuthStore } from "@/stores/auth";
+import { useAuthStore } from "@/hooks/use-auth";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore();
