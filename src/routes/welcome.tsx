@@ -4,10 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/server";
-import { useAuthStore } from "@/hooks/use-auth";
 import { useNavigate } from "@tanstack/react-router";
+import { signIn, useSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/welcome")({
   component: WelcomePage,
@@ -21,16 +21,22 @@ function WelcomePage() {
   const [fullName, setFullName] = useState("");
 
   const navigate = useNavigate();
+  const { session } = useSession();
 
-  const handleClick = () => {
-    navigate({ to: "/dashboard" });
-  };
+  useEffect(() => {
+    if (session) {
+      console.log(session);
+      navigate({ to: "/dashboard-home" });
+    }
+  }, [session, navigate]);
+
+  const handleClick = () => navigate({ to: "/dashboard-home" });
 
   const queryClient = useQueryClient();
 
   const checkEmailMutation = useMutation({
     mutationFn: async (email: string) => {
-      const { data } = await api.post("/auth/check-email", { email });
+      const { data } = await api.post("/check-email", { email });
       return data;
     },
     onSuccess: (data) => {
@@ -43,16 +49,15 @@ function WelcomePage() {
 
   const signInMutation = useMutation({
     mutationFn: async (credentials: { email: string; password: string }) => {
-      const { data } = await api.post("/auth/signin", credentials);
-      return data;
+      return await signIn.email(credentials);
     },
-    onSuccess: (data) => {
-      if (data.success) {
-        useAuthStore.getState().setAuth(data.session.token, data.session.user);
-        queryClient.setQueryData(["user"], data.session.user);
-        console.log("Signed in successfully!", data);
-        handleClick();
-      }
+    onSuccess: (user) => {
+      console.log(user);
+      queryClient.setQueryData(["user"], user);
+      handleClick();
+    },
+    onError: (error) => {
+      console.error("Sign in error:", error);
     },
   });
 
@@ -68,7 +73,7 @@ function WelcomePage() {
     onSuccess: (data) => {
       if (data.success) {
         queryClient.setQueryData(["user"], data.user);
-        console.log("Signed up successfully!", data);
+        handleClick();
       }
     },
   });

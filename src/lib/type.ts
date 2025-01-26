@@ -1,8 +1,8 @@
 export interface AuthResponse {
   success: boolean;
   error?: string;
-  user?: any; // Replace with your user type
-  session?: any; // Replace with your session type
+  user?: string; // Replace with your user type
+  session?: string; // Replace with your session type
 }
 
 export interface CheckEmailResponse {
