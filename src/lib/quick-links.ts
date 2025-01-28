@@ -1,8 +1,13 @@
 import { api } from "@/lib/server";
 
 export const fetchQuickLinks = async () => {
-  const { data } = await api.get("/quick-links");
-  return data.quickLinks;
+  try {
+    const response = await api.get("/quick-links");
+    return response.data.data; // Access the data property from the response
+  } catch (err) {
+    console.error("Error fetching quick links:", err);
+    throw err; // Rethrow the error to be handled by the calling code
+  }
 };
 
 export const createQuickLink = async (data: { name: string; url: string }) => {

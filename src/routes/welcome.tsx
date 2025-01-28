@@ -21,7 +21,7 @@ function WelcomePage() {
   const [fullName, setFullName] = useState("");
 
   const navigate = useNavigate();
-  const { session } = useSession();
+  const { data: session } = useSession();
 
   useEffect(() => {
     if (session) {

@@ -25,6 +25,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSession } from "@/lib/auth-client";
+import { formatTimeAgo } from "@/lib/formatted-time";
+
+export interface QuickLink {
+  id: string;
+  name: string;
+  url: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export const Route = createFileRoute("/dashboard-home")({
   component: DashboardHome,
@@ -36,9 +46,8 @@ function DashboardHome() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
-
-  // Hooks
   const queryClient = useQueryClient();
+
   const {
     data: session,
     isPending: isSessionLoading,
@@ -46,7 +55,6 @@ function DashboardHome() {
   } = useSession();
   const user = session?.user;
 
-  // Query for quick links
   const {
     data: quickLinks,
     isLoading,
@@ -55,6 +63,7 @@ function DashboardHome() {
     queryKey: ["quickLinks"],
     queryFn: fetchQuickLinks,
     enabled: !!session,
+    retry: false,
   });
 
   const createMutation = useMutation({
@@ -65,9 +74,11 @@ function DashboardHome() {
       setName("");
       setUrl("");
     },
+    onError: (error) => {
+      console.error("Failed to create quick link:", error);
+    },
   });
 
-  // Handlers
   const handleAddQuickLink = async () => {
     if (!name || !url) {
       alert("Please provide both a name and a URL.");
@@ -76,7 +87,6 @@ function DashboardHome() {
     await createMutation.mutateAsync({ name, url });
   };
 
-  // Effects
   useEffect(() => {
     const interval = setInterval(() => {
       setTime(new Date());
@@ -96,7 +106,6 @@ function DashboardHome() {
     }
   }, [time]);
 
-  // Formatted date and time
   const formattedDate = time.toLocaleDateString("en-US", {
     weekday: "long",
     month: "short",
@@ -109,18 +118,15 @@ function DashboardHome() {
     hour12: false,
   });
 
-  // Loading state
   if (isSessionLoading) {
     return <div>Loading...</div>;
   }
 
-  // Error state
   if (sessionError) {
     console.error("Session error:", sessionError);
     return <Navigate to="/welcome" />;
   }
 
-  // No session state
   if (!session) {
     console.log("no session found", session);
     return <Navigate to="/welcome" />;
@@ -208,19 +214,28 @@ function DashboardHome() {
             </div>
           ) : quickLinks?.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {quickLinks.map((link) => (
+              {quickLinks.map((link: QuickLink) => (
                 <div
                   key={link.id}
-                  className="rounded-lg bg-zinc-800 p-4 hover:bg-zinc-700 transition-colors"
+                  className="w-full flex item-center justify-between rounded-lg bg-zinc-800 p-4 hover:bg-zinc-700 transition-colors"
                 >
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-zinc-100 hover:text-blue-500"
-                  >
-                    {link.name}
-                  </a>
+                  <div className="flex items-center gap-5">
+                    <Link2 className="h-5 w-5 text-blue-500 -rotate-45" />{" "}
+                    <div>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-zinc-100 hover:text-blue-500"
+                      >
+                        {link.name}
+                      </a>
+                      <p className="text-sm text-zinc-400">
+                        {formatTimeAgo(link.createdAt)} {/* Display time ago */}
+                      </p>
+                    </div>
+                  </div>
+                  <Button>3 dot icon</Button>
                 </div>
               ))}
             </div>
